@@ -12,16 +12,18 @@ def read_csv(path: str):
 
 
 def write_csv(df: DataFrame):
-    df.to_csv("test.csv", index=False, encoding='utf-8-sig')
+    df.to_csv("test1.csv", index=False, encoding='utf-8-sig')
 
 
 def add_colums(df: DataFrame):
     df["sub_type"] = ''
     df["sub_type_info"] = ''
+    df["regex"] = ''
+    df["percentage"] = ''
     return df
 
 
-def regex(text: str):
+def regex(text: str) -> dict:
     pattern3 = r'(\.[\w\s]+={2,})'
     matches = re.split(pattern3, text)
     return matches
@@ -30,12 +32,13 @@ def regex(text: str):
 def add_row_by_equals_regex(df: DataFrame):
     for j, row in df.iterrows():
         if type(row["Output_Text"]) == str and row["Output_Text"]:
-            row['Output_Text'] = row['Output_Text']
             matches = regex(row['Output_Text'])
-            if len(matches) > 1:
+            if matches:
                 i = 1
-                while i < len(matches) - 1:
-                    matches[i] = remove_unessesery_chars_from_title(matches[i])
+                df.drop(j, inplace=True)
+                data=matches.get('data')
+                while i < len(data) - 1:
+                    data[i] = remove_unessesery_chars_from_title(data[i])
                     df2 = pd.DataFrame([{"DepartmentName": row["DepartmentName"],
                                          "Medical_Record_TA": row["Medical_Record_TA"],
                                          "Description": row["Description"],
@@ -44,12 +47,12 @@ def add_row_by_equals_regex(df: DataFrame):
                                          "Output_Text": row["Output_Text"],
                                          "ID_fake": row["ID_fake"],
                                          "AdmissionNumber_fake": row["AdmissionNumber_fake"],
-                                         "sub_type": matches[i],
-                                         "sub_type_info": matches[i + 1]}])
-                    df.drop(j, inplace=True)
+                                         "sub_type": data[i],
+                                         "sub_type_info": data[i + 1],
+                                         "regex": matches.get("regex")
+                                         }])
                     df = pd.concat([df, df2])
                     i = i + 2
-
     return df
 
 
