@@ -1,42 +1,25 @@
-import re
 import pandas as pd
 from pandas import DataFrame
 
-from regex import remove_unessesery_chars_from_title
+from utils import remove_unessesery_chars_from_title
+from regex_handler.regex_comparison import find_matching_regexes
 
 
-def read_csv(path: str):
-    with open(path) as f:
-        df = pd.read_csv(f)
-    return df
-
-
-def write_csv(df: DataFrame):
-    df.to_csv("test1.csv", index=False, encoding='utf-8-sig')
-
-
-def add_colums(df: DataFrame):
+def add_colums(df: DataFrame) -> DataFrame:
     df["sub_type"] = ''
     df["sub_type_info"] = ''
-    df["regex"] = ''
-    df["percentage"] = ''
+    df["regex_handler"] = ''
     return df
 
 
-def regex(text: str) -> dict:
-    pattern3 = r'(\.[\w\s]+={2,})'
-    matches = re.split(pattern3, text)
-    return matches
-
-
-def add_row_by_equals_regex(df: DataFrame):
+def add_row_by_equals_regex(df: DataFrame) -> DataFrame:
     for j, row in df.iterrows():
         if type(row["Output_Text"]) == str and row["Output_Text"]:
-            matches = regex(row['Output_Text'])
+            matches = find_matching_regexes(row['Output_Text'])
             if matches:
                 i = 1
                 df.drop(j, inplace=True)
-                data=matches.get('data')
+                data = matches.get('data')
                 while i < len(data) - 1:
                     data[i] = remove_unessesery_chars_from_title(data[i])
                     df2 = pd.DataFrame([{"DepartmentName": row["DepartmentName"],
@@ -49,14 +32,16 @@ def add_row_by_equals_regex(df: DataFrame):
                                          "AdmissionNumber_fake": row["AdmissionNumber_fake"],
                                          "sub_type": data[i],
                                          "sub_type_info": data[i + 1],
-                                         "regex": matches.get("regex")
+                                         "regex_handler": matches.get("regex_handler")
                                          }])
                     df = pd.concat([df, df2])
                     i = i + 2
     return df
 
 
-def activate(df: DataFrame):
+def enrich_data(df: DataFrame, **kwargs) -> DataFrame:
+    if "fuzzy_percentage" in kwargs:
+        df["percentage"] = ''
     df = add_colums(df)
     df = add_row_by_equals_regex(df)
     df = df.drop(["Index"], axis=1)
