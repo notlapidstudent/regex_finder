@@ -1,5 +1,6 @@
 import re
-from regexes_store import RegexStore
+
+from regex_handler.regexes_store import RegexStore
 
 
 def find_matching_regexes(paragraph: str) -> dict:
@@ -8,7 +9,7 @@ def find_matching_regexes(paragraph: str) -> dict:
         if len(splitted_paragraph) > 1:
             return {
                 "data": splitted_paragraph,
-                "regex_handler": regex.value
+                "matched_regex": regex.value
             }
         else:
             return {}
